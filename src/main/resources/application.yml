@@ -1,0 +1,19 @@
+spring:
+  cloud:
+    stream:
+      default-binder: kafka
+      kafka:
+        binder:
+          brokers:
+            - localhost:9092
+      bindings:
+        input:
+          binder: kafka
+          destination: test-topic
+          content-type: text/plain
+          group: input-group-1
+        output:
+          binder: kafka
+          destination: dlq-topic
+          group: output-group-1
+          content-type: text/plain
