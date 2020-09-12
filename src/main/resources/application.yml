@@ -11,14 +11,13 @@ spring:
           binder: kafka
           destination: test-topic
           content-type: text/plain
-          group: input-group-1
+          group: group1
           consumer:
-            maxAttempts: 1
-            backOffInitialInterval : 10000 # 10seconds
-            backOffMaxInterval : 100000    # 100 seconds
-            backoffMultiplier : 2.0       # retries will be done after 10 20 40 80 seconds. The total is 150 which is within the default max retry interval
-        output:
-          binder: kafka
-          destination: dlq-topic
-          group: output-group-1
-          content-type: text/plain
+            # https://cloud.spring.io/spring-cloud-static/spring-cloud-stream-binder-kafka/3.0.6.RELEASE/reference/html/spring-cloud-stream-binder-kafka.html#kafka-consumer-properties
+            maxAttempts: 4
+            backOffInitialInterval: 10000 # 10seconds
+            backOffMaxInterval: 100000    # 100 seconds
+            backoffMultiplier: 2.0       # retries will be done after 10 20 40 seconds.
+            #enableDlq : true
+            #dlqPartitions: 1
+            # error.test-topic.group1
