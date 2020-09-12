@@ -17,8 +17,11 @@ public class DemoConsumer {
     public void handle(String msg){
         log.info("DemoConsumer::handle() was called");
         log.info(msg);
+
+        throw new ProcessingException();
     }
 
+    /*
     @StreamListener(Sink.INPUT)
     public void logger(@Payload  String payload, @Headers Map<String,Object> headers){
         log.info("DemoConsumer::logger called");
@@ -28,4 +31,6 @@ public class DemoConsumer {
             log.info("{}: {}", key, headers.get(key));
         }
     }
+
+     */
 }
