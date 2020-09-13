@@ -14,10 +14,7 @@ spring:
           group: group1
           consumer:
             # https://cloud.spring.io/spring-cloud-static/spring-cloud-stream-binder-kafka/3.0.6.RELEASE/reference/html/spring-cloud-stream-binder-kafka.html#kafka-consumer-properties
-            maxAttempts: 4
-            backOffInitialInterval: 10000 # 10seconds
+            maxAttempts: 1
+            backOffInitialInterval: 5000  # 5 seconds
             backOffMaxInterval: 100000    # 100 seconds
-            backoffMultiplier: 2.0       # retries will be done after 10 20 40 seconds.
-            #enableDlq : true
-            #dlqPartitions: 1
-            # error.test-topic.group1
+            backoffMultiplier: 2.0        # retries will be done after 5 10 15 20
