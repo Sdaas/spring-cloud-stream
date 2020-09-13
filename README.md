@@ -1,38 +1,51 @@
 
 ## Introduction
 
-Work in Progress
-
-## Retry Approaches
+This code shows various retry approaches when using `spring-cloud-stream` with the `apache-kafka` binder.
 
 In the [Error Handling](https://cloud.spring.io/spring-cloud-static/spring-cloud-stream/3.0.6.RELEASE/reference/html/spring-cloud-stream.html#spring-cloud-stream-overview-error-handling)
 section of the Spring Cloud Stream document, it says that when the application throws an exception, the Spring `RetryTemplate` is used to retry. If that fails, 
 then it is sent to the container's error handler in the binder's container, where the `SeekToCurrentErrorHandler` will also try multiple times before sending it to a
 dead-letter topic. Think of these as two nested loops. This suggests two approaches
 
-### Use `RetryTemplate` to retry
+## Use `RetryTemplate` to retry
 
-Use this approach if ALL the retries can be completed within `max.poll.interval.ms` (typically 5 mins) of the consumer. 
+This approach does a "stateless" retry and sends the message to a DLQ if all attempts fail. Use this approach if ALL the retries can be completed within `max.poll.interval.ms` (typically 5 mins) of the consumer. 
 
-Configure the retry at the spring-cloud-stream level as 
+The retry configuration ...
 
 ```yaml
-consumer:
-  maxAttempts : 5
-  backOffInitialInterval : 10000 # 10seconds
-  backoffMultiplier : 2.0
+spring.cloud.streams.bindings.XXXX:
+  consumer:
+    maxAttempts : 5
+    backOffInitialInterval : 10000 # 10seconds
+    backoffMultiplier : 2.0
 ```
 would allow a maximum of four retries before the total time exceeds the default 5mins of `max.poll.interval.ms` and triggers a consumer 
-rebalance. To avoid that, the `maxAttempts` should be set to 5000 or less. The `SeekToCurrentErrorHandler` should be configured with 
-a `FixedBackoff(0,0)` so that it does not attempt any retries and sends the data directly to the dead-letter-topic.
+rebalance. To avoid that, the `maxAttempts` should be set to 5000 or less. 
 
-### Use `SeektoCurrentErrorHandler` to retry
+The following configruation is to enable the dead-letter-topic as described the documentation 
+for [enableDlq](https://cloud.spring.io/spring-cloud-static/spring-cloud-stream-binder-kafka/3.0.6.RELEASE/reference/html/spring-cloud-stream-binder-kafka.html#kafka-consumer-properties)
+      
+```yaml
+spring.cloud.stream.kafka.bindings.XXX:
+  consumer:
+    enableDlq: true
+    dlqName: dlq-topic
+    dlqPartitions: 1
+```
 
-With this approach there is no upper limit on the TOTAL amount of time spent on retries. But the delay between INDIVIDUAL retries
-cannot exceed `max.poll.interval.ms`. 
+Note: With this approach, if `enableDlq` is not true, then the framework will use a default `SeekToCurrentErrorHandler` which is set to make 10 attempts and 
+then drop the message.
 
-Disable the retry in the spring-cloud-stream level by setting `spring.cloud.stream.bindings.xxxx.consumer.maxAttempts=1` . 
-Configure the `SeekToCurrentErrorHandler` to use a [FixedBackOff](https://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/util/backoff/FixedBackOff.html)
+## Use `SeektoCurrentErrorHandler` to retry
+
+This approach does a "stateful" retry and sends the message to DLQ if all attempts fail. With this approach there is no upper limit on the 
+TOTAL amount of time spent on retries. But the delay between INDIVIDUAL retries cannot exceed `max.poll.interval.ms`. 
+
+* Disable the retry in the spring-cloud-stream level by setting `spring.cloud.stream.bindings.xxxx.consumer.maxAttempts=1`. 
+* Ensure that `enableDlq` is false ( or that the entry is not present in the application.yml file)
+* Configure the `SeekToCurrentErrorHandler` to use a [FixedBackOff](https://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/util/backoff/FixedBackOff.html)
 or [ExponentialBackoff](https://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/util/backoff/ExponentialBackOff.html).
  
 If using ExponentialBackoff, makes sure to

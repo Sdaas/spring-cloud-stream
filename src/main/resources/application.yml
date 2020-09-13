@@ -6,6 +6,14 @@ spring:
         binder:
           brokers:
             - localhost:9092
+        bindings:
+          input:
+            consumer:
+              # Dead Letter Queue Configuration
+              # https://cloud.spring.io/spring-cloud-static/spring-cloud-stream-binder-kafka/3.0.6.RELEASE/reference/html/spring-cloud-stream-binder-kafka.html#kafka-consumer-properties
+              enableDlq: true
+              dlqName: dlq-topic
+              dlqPartitions: 1
       bindings:
         input:
           binder: kafka
@@ -13,8 +21,9 @@ spring:
           content-type: text/plain
           group: group1
           consumer:
+            # RETRY CONFIGURATION
             # https://cloud.spring.io/spring-cloud-static/spring-cloud-stream-binder-kafka/3.0.6.RELEASE/reference/html/spring-cloud-stream-binder-kafka.html#kafka-consumer-properties
-            maxAttempts: 1
-            backOffInitialInterval: 5000  # 5 seconds
+            maxAttempts: 3
+            backOffInitialInterval: 1000  # 5 seconds
             backOffMaxInterval: 100000    # 100 seconds
-            backoffMultiplier: 2.0        # retries will be done after 5 10 15 20
+            backoffMultiplier: 1.0        # retries will be done after 5 10 15 20

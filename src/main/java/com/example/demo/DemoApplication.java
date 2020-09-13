@@ -46,6 +46,9 @@ public class DemoApplication {
 		//return new FixedBackOff(0L,0L);
 	}
 
+	/*
+	Dont use this if using configured dlq
+
 	@Bean
 	public ListenerContainerCustomizer<AbstractMessageListenerContainer<?, ?>> customizer() {
 		log.info("customizer() called");
@@ -71,4 +74,5 @@ public class DemoApplication {
 
 		};
 	}
+	 */
 }
