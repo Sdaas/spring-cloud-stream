@@ -8,7 +8,7 @@ section of the Spring Cloud Stream document, it says that when the application t
 then it is sent to the container's error handler in the binder's container, where the `SeekToCurrentErrorHandler` will also try multiple times before sending it to a
 dead-letter topic. Think of these as two nested loops. This suggests two approaches
 
-## Use `RetryTemplate` to retry
+## Use `RetryTemplate` 
 
 This approach does a "stateless" retry and sends the message to a DLQ if all attempts fail. Use this approach if ALL the retries can be completed within `max.poll.interval.ms` (typically 5 mins) of the consumer. 
 
@@ -22,9 +22,9 @@ spring.cloud.streams.bindings.XXXX:
     backoffMultiplier : 2.0
 ```
 would allow a maximum of four retries before the total time exceeds the default 5mins of `max.poll.interval.ms` and triggers a consumer 
-rebalance. To avoid that, the `maxAttempts` should be set to 5000 or less. 
+rebalance. To avoid that, the `maxAttempts` should be set to 5 or less. 
 
-The following configruation is to enable the dead-letter-topic as described the documentation 
+The following configuration enables `dlq-topic` as the dead-letter topic, as described the documentation 
 for [enableDlq](https://cloud.spring.io/spring-cloud-static/spring-cloud-stream-binder-kafka/3.0.6.RELEASE/reference/html/spring-cloud-stream-binder-kafka.html#kafka-consumer-properties)
       
 ```yaml
@@ -35,10 +35,10 @@ spring.cloud.stream.kafka.bindings.XXX:
     dlqPartitions: 1
 ```
 
-Note: With this approach, if `enableDlq` is not true, then the framework will use a default `SeekToCurrentErrorHandler` which is set to make 10 attempts and 
+Note: With this approach, if `enableDlq` is not true, then the framework will use a default `SeekToCurrentErrorHandler` which will make 10 attempts and 
 then drop the message.
 
-## Use `SeektoCurrentErrorHandler` to retry
+## Use `SeektoCurrentErrorHandler`
 
 This approach does a "stateful" retry and sends the message to DLQ if all attempts fail. With this approach there is no upper limit on the 
 TOTAL amount of time spent on retries. But the delay between INDIVIDUAL retries cannot exceed `max.poll.interval.ms`. 
@@ -57,13 +57,15 @@ For example, using
 
 ```
 long initialInterval = 5000;	// initial interval in milliseconds
-double multiplier = 2.0;		// so retries will be done after 5, 10, 20, 40, 60 second interval
-long maxInterval = 30 * 1000L;  // maximum wait time between two retries. This will hence cap it to 5, 10, 20, 30, 30
+double multiplier = 2.0;		// retries will be done after 5, 10, 20, 40, 60 second interval
+long maxInterval = 30 * 1000L;  // maximum wait time between two retries. 
+                                // This will hence be capped to to 5, 10, 20, 30, 30
 long maxElapsedTime = 80 * 1000L;  // no retry will be done after this much time has elapsed
 ```
-will lead to a maximum of 5 retries (i.e. 6 attempts) with a pause of 5, 10, 20, 30, and 30 seconds between pauses.
+will lead to a maximum of 5 retries (i.e. 6 attempts) with a pause of 5, 10, 20, 30, and 30 seconds between retries.
 
-## RetryTemplate
+## Reference
+### RetryTemplate
 
 See the Spring Cloud Stream documentation on [Retry Template and Backoff](https://cloud.spring.io/spring-cloud-static/spring-cloud-stream/3.0.6.RELEASE/reference/html/spring-cloud-stream.html#_retry_template_and_retrybackoff)
 
