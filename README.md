@@ -38,6 +38,9 @@ spring.cloud.stream.kafka.bindings.XXX:
 Note: With this approach, if `enableDlq` is not true, then the framework will use a default `SeekToCurrentErrorHandler` which will make 10 attempts and 
 then drop the message.
 
+According to the documentation for [enableDlq](https://cloud.spring.io/spring-cloud-static/spring-cloud-stream-binder-kafka/3.0.6.RELEASE/reference/html/spring-cloud-stream-binder-kafka.html#kafka-consumer-properties)
+the messages sent to the DLQ topic are enhanced with the following headers: x-original-topic, x-exception-message, and x-exception-stacktrace as byte[].
+
 ## Use `SeektoCurrentErrorHandler`
 
 This approach does a "stateful" retry and sends the message to DLQ if all attempts fail. With this approach there is no upper limit on the 
@@ -125,3 +128,6 @@ This backoff behavior and the recovery action (what to do if all retries fails) 
 * [Apache Kafka Binder](https://cloud.spring.io/spring-cloud-static/spring-cloud-stream-binder-kafka/3.0.6.RELEASE/reference/html/spring-cloud-stream-binder-kafka.html)
     * [Consumer Properties](https://cloud.spring.io/spring-cloud-static/spring-cloud-stream-binder-kafka/3.0.6.RELEASE/reference/html/spring-cloud-stream-binder-kafka.html#kafka-consumer-properties)
     * [Dead Letter Queue processing](https://cloud.spring.io/spring-cloud-static/spring-cloud-stream-binder-kafka/3.0.6.RELEASE/reference/html/spring-cloud-stream-binder-kafka.html#kafka-dlq-processing)
+* [Kafkacat](https://github.com/edenhill/kafkacat)
+* [Running Kafka inside Docker](https://github.com/wurstmeister/kafka-docker)
+* [Markdown Syntax](https://github.com/adam-p/markdown-here/wiki/Markdown-Cheatsheet)
